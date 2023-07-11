@@ -3,6 +3,4 @@ const userRoles = [
     'ADMIN'
 ];
 
-module.exports = {
-    userRoles
-};
+module.exports = userRoles;

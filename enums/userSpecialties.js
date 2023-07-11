@@ -8,6 +8,4 @@ const userSpecialties = [
     'Отоларинголог'
 ];
 
-module.exports = {
-    userSpecialties
-};
+module.exports = userSpecialties;

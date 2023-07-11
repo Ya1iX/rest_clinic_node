@@ -1,9 +1,10 @@
 const sequelize = require('../db');
 const {DataTypes} = require('sequelize');
-const {userRoles} = require("../enums/userRoles");
-const {userSpecialties} = require("../enums/userSpecialties");
+const userRoles = require("../enums/userRoles");
+const userSpecialties = require("../enums/userSpecialties");
 const Visit = require("./Visit");
 const Diagnosis = require("./Diagnosis");
+const ModelScopes = require("../enums/modelScopes");
 
 const User = sequelize.define('user', {
     id: {
@@ -17,7 +18,10 @@ const User = sequelize.define('user', {
         unique: true,
         allowNull: false,
         validate: {
-            isEmail: true
+            isEmail: {
+                args: true,
+                msg: 'Invalid email format'
+            }
         }
     },
     password: {
@@ -25,39 +29,48 @@ const User = sequelize.define('user', {
         allowNull: false
     },
     roles: {
-        type: DataTypes.ARRAY(DataTypes.ENUM(userRoles)),
+        type: DataTypes.ARRAY(DataTypes.STRING),
         allowNull: false,
         defaultValue: ['USER'],
-        // validate: {
-        //     isArrayValid(value) {
-        //         const values = (Array.isArray(value) ? value : [value]);
-        //         values.forEach((role) => {
-        //             if (!userRoles.includes(role)) {
-        //                 throw new Error(`Role ${role} doesn't exists`);
-        //             }
-        //         });
-        //     }
-        // }
+        validate: {
+            isArrayValid(value) {
+                const values = Array.isArray(value) ? value : [value];
+                values.forEach((role) => {
+                    if (!userRoles.includes(role)) {
+                        throw new Error(`Role ${role} doesn't exists`);
+                    }
+                });
+            }
+        }
     },
     first_name: {
         type: DataTypes.STRING(32),
         allowNull: false,
         validate: {
-            len: [2, 32]
+            len: {
+                args: [2, 32],
+                msg: 'First name length must be between 2 and 32 symbols'
+            }
         }
     },
     last_name: {
         type: DataTypes.STRING(32),
         allowNull: false,
         validate: {
-            len: [2, 32]
+            len: {
+                args: [2, 32],
+                msg: 'Last name length must be between 2 and 32 symbols'
+            }
         }
     },
     middle_name: {
         type: DataTypes.STRING(32),
         allowNull: false,
         validate: {
-            len: [2, 32]
+            len: {
+                args: [2, 32],
+                msg: 'Middle name length must be between 2 and 32 symbols'
+            }
         }
     },
     phone_number: {
@@ -65,41 +78,70 @@ const User = sequelize.define('user', {
         allowNull: false,
         unique: true,
         validate: {
-            is: /\d{9}/g
+            is: {
+                args: /^\d{9}/gm,
+                msg: 'Phone number must contain 9 digits'
+            }
         }
     },
     specialty: {
-        type: DataTypes.ENUM(userSpecialties),
-        allowNull: false
-    },
-    avatar_url: {
         type: DataTypes.STRING,
         allowNull: false,
         validate: {
-            isUrl: true
+            isIn: {
+                args: [userSpecialties],
+                msg: `Invalid specialty. Valid specialties: ${userSpecialties}`
+            }
         }
     },
-    is_deleted: {
-        type: DataTypes.BOOLEAN,
-        allowNull: false,
-        defaultValue: false
+    avatar: {
+        type: DataTypes.STRING,
+        defaultValue: process.env.DEFAULT_AVATAR_NAME,
+        allowNull: false
     }
+}, {
+    defaultScope: {
+        attributes: {
+            exclude: ['email', 'password', 'roles', 'phone_number', 'deleted_at', 'created_at', 'updated_at']
+        },
+        order: [['specialty', 'ASC']]
+    },
+    scopes: {
+        deleted: ModelScopes.deleted,
+        paranoidFalse: ModelScopes.paranoidFalse,
+        detailed: {
+            attributes: {
+                exclude: ['password', 'roles', 'deleted_at', 'created_at', 'updated_at']
+            }
+        },
+        full: {
+            attributes: {
+                exclude: ['password']
+            },
+            include: [{model: Visit, as: 'visits'}, {model: Diagnosis, as: 'diagnoses'}]
+        }
+    },
+    paranoid: true,
+    timestamps: true,
+    deletedAt: 'deleted_at',
+    createdAt: 'created_at',
+    updatedAt: 'updated_at'
 });
 
 User.hasMany(Visit, {
-    as: 'Visits',
+    as: 'visits',
     foreignKey: 'user_id',
     onDelete: 'RESTRICT',
     onUpdate: 'RESTRICT'
 });
-Visit.belongsTo(User, { as: 'User', foreignKey: 'user_id' })
+Visit.belongsTo(User, { as: 'doctor', foreignKey: 'user_id' })
 
 User.hasMany(Diagnosis, {
-    as: 'Diagnoses',
+    as: 'diagnoses',
     foreignKey: 'user_id',
     onDelete: 'RESTRICT',
     onUpdate: 'RESTRICT'
 });
-Diagnosis.belongsTo(User, { as: 'User', foreignKey: 'user_id' })
+Diagnosis.belongsTo(User, { as: 'doctor', foreignKey: 'user_id' })
 
 module.exports = User;
