@@ -1,4 +1,3 @@
-const ApiError = require("../replies/ApiError");
 const Response = require('../replies/CustomResponse');
 const DiagnosisService = require("../services/DiagnosisService");
 
@@ -9,7 +8,7 @@ class DiagnosisController {
             const visits = await DiagnosisService.getAll(patient, user, diagnosis, page, size);
             return res.status(200).json(Response.ok(visits));
         } catch (e) {
-            next(ApiError.internal(e.message));
+            next(e);
         }
     }
 
@@ -19,7 +18,7 @@ class DiagnosisController {
             const visits = await DiagnosisService.getAll(patient, user, diagnosis, page, size, ['defaultScope', 'archived']);
             return res.status(200).json(Response.ok(visits));
         } catch (e) {
-            next(ApiError.internal(e.message));
+            next(e);
         }
     }
 
@@ -29,7 +28,7 @@ class DiagnosisController {
             const visits = await DiagnosisService.getAll(patient, user, diagnosis, page, size, ['defaultScope', 'deleted']);
             return res.status(200).json(Response.ok(visits));
         } catch (e) {
-            next(ApiError.internal(e.message));
+            next(e);
         }
     }
 

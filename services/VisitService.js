@@ -60,7 +60,7 @@ class VisitService {
             fileNames = FilesParser.parseArrayAny(files.files, 'visits');
         }
 
-        return await Visit.scope('detailed').create({
+        return await Visit.create({
             ...visit,
             files: fileNames,
             archived_at: undefined,

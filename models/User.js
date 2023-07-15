@@ -5,6 +5,7 @@ const userSpecialties = require("../enums/userSpecialties");
 const Visit = require("./Visit");
 const Diagnosis = require("./Diagnosis");
 const ModelScopes = require("../enums/modelScopes");
+const JwtToken = require("./JwtToken");
 
 const User = sequelize.define('user', {
     id: {
@@ -119,6 +120,11 @@ const User = sequelize.define('user', {
                 exclude: ['password']
             },
             include: [{model: Visit, as: 'visits'}, {model: Diagnosis, as: 'diagnoses'}]
+        },
+        password: {
+            attributes: {
+                include: ['password']
+            }
         }
     },
     paranoid: true,
@@ -134,7 +140,7 @@ User.hasMany(Visit, {
     onDelete: 'RESTRICT',
     onUpdate: 'RESTRICT'
 });
-Visit.belongsTo(User, { as: 'doctor', foreignKey: 'user_id' })
+Visit.belongsTo(User, { as: 'doctor', foreignKey: 'user_id' });
 
 User.hasMany(Diagnosis, {
     as: 'diagnoses',
@@ -142,6 +148,8 @@ User.hasMany(Diagnosis, {
     onDelete: 'RESTRICT',
     onUpdate: 'RESTRICT'
 });
-Diagnosis.belongsTo(User, { as: 'doctor', foreignKey: 'user_id' })
+Diagnosis.belongsTo(User, { as: 'doctor', foreignKey: 'user_id' });
+
+JwtToken.belongsTo(User, {as: 'user', foreignKey: 'user_id'});
 
 module.exports = User;

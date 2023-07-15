@@ -1,4 +1,3 @@
-const ApiError = require("../replies/ApiError");
 const Response = require('../replies/CustomResponse');
 const PatientService = require('../services/PatientCardService');
 
@@ -9,7 +8,7 @@ class PatientCardController {
             const patients = await PatientService.getAll(last_name, page, size);
             return res.status(200).json(Response.ok(patients));
         } catch (e) {
-            next(ApiError.internal(e.message));
+            next(e);
         }
     }
 
@@ -19,7 +18,7 @@ class PatientCardController {
             const patients = await PatientService.getAll(last_name, page, size, ['defaultScope', 'archived']);
             return res.status(200).json(Response.ok(patients));
         } catch (e) {
-            next(ApiError.internal(e.message));
+            next(e);
         }
     }
 
@@ -29,7 +28,7 @@ class PatientCardController {
             const patients = await PatientService.getAll(last_name, page, size, ['defaultScope', 'deleted']);
             return res.status(200).json(Response.ok(patients));
         } catch (e) {
-            next(ApiError.internal(e.message));
+            next(e);
         }
     }
 

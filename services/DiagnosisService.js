@@ -63,7 +63,7 @@ class DiagnosisService {
             fileNames = FilesParser.parseArrayAny(files.files, 'diagnoses');
         }
 
-        return await Diagnosis.scope('full').create({
+        return await Diagnosis.create({
             ...diagnosis,
             files: fileNames,
             archived_at: undefined,

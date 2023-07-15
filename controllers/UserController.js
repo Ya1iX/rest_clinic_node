@@ -1,4 +1,3 @@
-const ApiError = require("../replies/ApiError");
 const Response = require('../replies/CustomResponse');
 const UserService = require('../services/UserService');
 
@@ -9,7 +8,7 @@ class UserController {
             const users = await UserService.getAll(specialty, page, size);
             return res.status(200).json(Response.ok(users))
         } catch (e) {
-            next(ApiError.internal(e.message));
+            next(e);
         }
     }
 
@@ -19,7 +18,7 @@ class UserController {
             const users = await UserService.getAll(specialty, page, size, ['defaultScope', 'deleted']);
             return res.status(200).json(Response.ok(users))
         } catch (e) {
-            next(ApiError.internal(e.message));
+            next(e);
         }
     }
 
@@ -41,14 +40,6 @@ class UserController {
         }
     }
 
-    async check(req, res, next) {
-        try {
-
-        } catch (e) {
-            next(e);
-        }
-    }
-
     async create(req, res, next) {
         try {
             const user = await UserService.create(req.body, req.files);
@@ -58,9 +49,32 @@ class UserController {
         }
     }
 
+    async refresh(req, res, next) {
+        try {
+            const tokens = await UserService.refresh(req.cookies.refreshToken);
+            res.cookie('refreshToken', tokens.refreshToken);
+            return res.status(200).json(Response.ok(tokens));
+        } catch (e) {
+            next(e);
+        }
+    }
+
     async login(req, res, next) {
         try {
+            const {email, password} = req.body;
+            const user = await UserService.login(email, password);
+            res.cookie('refreshToken', user.refreshToken, {maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true});
+            return res.status(200).json(Response.ok(user));
+        } catch (e) {
+            next(e);
+        }
+    }
 
+    async logout(req, res, next) {
+        try {
+            await UserService.logout(req.cookies.refreshToken);
+            res.clearCookie('refreshToken');
+            return res.status(200).json(Response.ok());
         } catch (e) {
             next(e);
         }
@@ -68,7 +82,9 @@ class UserController {
 
     async register(req, res, next) {
         try {
-
+            const user = await UserService.register(req.body, req.files);
+            res.cookie('refreshToken', user.refreshToken, {maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true});
+            return res.status(201).json(Response.created(user));
         } catch (e) {
             next(e);
         }

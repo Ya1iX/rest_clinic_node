@@ -41,7 +41,7 @@ class PatientCardService {
     }
 
     async create(patient) {
-        return await PatientCard.scope('detailed').create({
+        return await PatientCard.create({
             ...patient,
             archived_at: undefined,
             deleted_at: undefined,
